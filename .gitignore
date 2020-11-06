@@ -141,7 +141,9 @@ dmypy.json
 cython_debug/
 
 # Project specific
-data
+**/data
+lightning_logs
+saved_models
 interpreter.py
 scrap_code.py
 *.jpg
