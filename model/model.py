@@ -12,7 +12,6 @@ from .resblock import Resblock
 class MetaDRN(nn.Module):
     def __init__(self, loss_fn, seed=gcfg['seed']):
         super(MetaDRN, self).__init__()
-        print(**(cfg['head']['conv1']))
         # Definet the network
         self.head = nn.Sequential()
         self.head.add_module('conv1', nn.Conv2d(**(cfg['head']['conv1'])))

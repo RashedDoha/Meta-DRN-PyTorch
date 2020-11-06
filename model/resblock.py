@@ -1,6 +1,6 @@
 from torch import nn
 
-from config import model_config as cfg
+from config.model_config import cfg
 from .layers import conv2d
 
 
@@ -10,12 +10,12 @@ class Resblock(nn.Module):
         self.block_id = 'resblock%d' % id
 
         # print(**(cfg['resblocks'][self.block_id]['conv1']))
-        self.add_module('conv1', nn.Conv2d(**(cfg['resblocks']
-                                              [self.block_id]['conv1'])))
+        self.add_module('conv1', nn.Conv2d(**cfg['resblocks']
+                                           [self.block_id]['conv1']))
         self.add_module('conv2', nn.Conv2d(
             **(cfg['resblocks'][self.block_id]['conv2'])))
         self.add_module('reducer',
-                        nn.Conv2d(**cfg(['reducer'][self.block_id])))
+                        nn.Conv2d(**cfg['reducer'][self.block_id]))
 
     def forward(self, x, weights=None):
         if weights is None:

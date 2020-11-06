@@ -1,1 +1,1 @@
-from .model import *
+from model.model import MetaDRN
