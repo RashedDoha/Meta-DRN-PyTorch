@@ -15,7 +15,6 @@ cfg = {
     'normalize_std': [0.229, 0.224, 0.225],
     'batch_size': 8,
     'maml': {
-
         'test_shots': 5,
         'train_shots': 1,
         'n_ways': 4

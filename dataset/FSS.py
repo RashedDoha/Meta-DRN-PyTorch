@@ -1,112 +1,128 @@
 import os
 import random
-from config import data_config as cfg
-from utils import download_file_from_google_drive
-from PIL import Image
 
-import torch
-from torch.utils.data import Dataset
 import albumentations as A
-from albumentations.pytorch.transforms import ToTensor
 import numpy as np
+import torch
+from albumentations.pytorch.transforms import ToTensor
+from config.data_config import cfg
+from PIL import Image
+from torch.utils.data import Dataset
+from utils import download_file_from_google_drive
 
 
 class FSSDataset(Dataset):
-    folder = cfg['dataset_dir']
+  folder = cfg['dataset_dir']
 
-    def __init__(self, root, ways, shots=1, test_shots=1, meta_split='train', transform=None, download=True):
-        super(FSSDataset, self).__init__()
-        assert meta_split in [
-            'train', 'val', 'test'], "meta-split must be either 'train', 'val' or 'test'"
-        self.ways = ways
-        self.shots = shots
-        self.transform = transform
-        self.test_shots = test_shots
-        self.meta_split = meta_split
-        if transform is None:
-            self.transform = A.Compose([A.Normalize(mean=cfg['normalize_mean'], std=cfg['normalize_std']),
-                                        ToTensor()])
-        else:
-            self.transform = transform
-        if download:
-            self.download(root)
+  def __init__(self,
+               root,
+               ways,
+               shots=1,
+               test_shots=1,
+               meta_split='train',
+               transform=None,
+               download=True):
+    super(FSSDataset, self).__init__()
+    assert meta_split in ['train', 'val',
+                          'test'], "meta-split must be either 'train',\
+                 'val' or 'test'"
 
-        self.root = os.path.expanduser(os.path.join(root, self.folder))
-        all_classes = os.listdir(self.root)
+    self.ways = ways
+    self.shots = shots
+    self.transform = transform
+    self.test_shots = test_shots
+    self.meta_split = meta_split
+    if transform is None:
+      self.transform = A.Compose([
+          A.Normalize(mean=cfg['normalize_mean'], std=cfg['normalize_std']),
+          ToTensor()
+      ])
+    else:
+      self.transform = transform
+    if download:
+      self.download(root)
 
-        if meta_split == 'train':
-            self.classes = [all_classes[i]
-                            for i in range(cfg['n_train_classes'])]
-        elif meta_split == 'val':
-            self.classes = [all_classes[i] for i in range(
-                cfg['n_train_classes'], cfg['n_train_classes']
-                + cfg['n_val_classes'])]
-        else:
-            self.classes = [all_classes[i] for i in range(
-                cfg['n_train_classes']+cfg['n_val_classes'],
-                cfg['n_classes'])]
+    self.root = os.path.expanduser(os.path.join(root, self.folder))
+    all_classes = os.listdir(self.root)
 
-        self.num_classes = len(self.classes)
+    if meta_split == 'train':
+      self.classes = [all_classes[i] for i in range(cfg['n_train_classes'])]
+    elif meta_split == 'val':
+      self.classes = [
+          all_classes[i]
+          for i in range(cfg['n_train_classes'], cfg['n_train_classes'] +
+                         cfg['n_val_classes'])
+      ]
+    else:
+      self.classes = [
+          all_classes[i]
+          for i in range(cfg['n_train_classes'] +
+                         cfg['n_val_classes'], cfg['n_classes'])
+      ]
 
-    def thresh_mask(self, mask, thresh=0.5):
-        thresh = (mask.min()+mask.max())*thresh
-        mask = mask > thresh
-        return mask.long()
+    self.num_classes = len(self.classes)
 
-    def make_batch(self, classes):
-        shots = self.shots + self.test_shots
-        batch = torch.zeros((shots, self.ways, 4, 224, 224))
+  def thresh_mask(self, mask, thresh=0.5):
+    thresh = (mask.min() + mask.max()) * thresh
+    mask = mask > thresh
+    return mask.long()
 
-        for i in range(shots):
-            for j, cname in enumerate(classes):
-                img_id = str(random.choice(list(range(1, 11))))
-                img = Image.open(os.path.join(
-                    self.root, cname, img_id+'.jpg')).convert('RGB')
-                mask = Image.open(os.path.join(
-                    self.root, cname, img_id+'.png')).convert('RGB')
-                img, mask = np.array(img), np.array(mask)[:, :, 0]
-                transformed = self.transform(image=img, mask=mask)
-                batch[i, j, :3, :, :] = transformed['image']
-                batch[i, j, 3:, :, :] = self.thresh_mask(transformed['mask'])
+  def make_batch(self, classes):
+    shots = self.shots + self.test_shots
+    batch = torch.zeros((shots, self.ways, 4, 224, 224))
 
-        return batch
+    for i in range(shots):
+      for j, cname in enumerate(classes):
+        img_id = str(random.choice(list(range(1, 11))))
+        img = Image.open(os.path.join(self.root, cname,
+                                      img_id + '.jpg')).convert('RGB')
+        mask = Image.open(os.path.join(self.root, cname,
+                                       img_id + '.png')).convert('RGB')
+        img, mask = np.array(img), np.array(mask)[:, :, 0]
+        transformed = self.transform(image=img, mask=mask)
+        batch[i, j, :3, :, :] = transformed['image']
+        batch[i, j, 3:, :, :] = self.thresh_mask(transformed['mask'])
 
-    @staticmethod
-    def break_batch(batch, shots, ways, shuffle=True):
-        permute = torch.randperm(ways) if shuffle else torch.arange(ways)
-        train_images, train_masks = batch[:, :shots, permute, :3, :, :],\
-            batch[:, :shots, permute, 3:, :, :]
+    return batch
 
-        test_images, test_masks = batch[:, shots:, :, :3, :, :],\
-            batch[:, shots:, :, 3:, :, :]
+  @staticmethod
+  def break_batch(batch, shots, ways, shuffle=True):
+    permute = torch.randperm(ways) if shuffle else torch.arange(ways)
+    train_images, train_masks = batch[:, :shots, permute, :3, :, :],\
+        batch[:, :shots, permute, 3:, :, :]
 
-        return (train_images, train_masks), (test_images, test_masks)
+    test_images, test_masks = batch[:, shots:, :, :3, :, :],\
+        batch[:, shots:, :, 3:, :, :]
 
-    def __getitem__(self, class_index):
-        classes = [self.classes[i] for i in range(
-            class_index, (class_index+self.ways) % self.num_classes)]
-        batch = self.make_batch(classes)
-        return batch
+    return (train_images, train_masks), (test_images, test_masks)
 
-    def __len__(self):
-        return self.num_classes
+  def __getitem__(self, class_index):
+    classes = [
+        self.classes[i] for i in range(class_index, (class_index + self.ways) %
+                                       self.num_classes)
+    ]
+    batch = self.make_batch(classes)
+    return batch
 
-    def download(self, root, remove_zip=True):
-        filename = cfg['dataset_dir']+'.zip'
-        import zipfile
-        import shutil
+  def __len__(self):
+    return self.num_classes
 
-        if os.path.exists(root):
-            return
+  def download(self, root, remove_zip=True):
+    filename = cfg['dataset_dir'] + '.zip'
+    import shutil
+    import zipfile
 
-        file_id = cfg['gdrive_file_id']
+    if os.path.exists(root):
+      return
 
-        download_file_from_google_drive(file_id, filename)
+    file_id = cfg['gdrive_file_id']
 
-        with zipfile.ZipFile(filename, 'r') as f:
-            f.extractall()
+    download_file_from_google_drive(file_id, filename)
 
-        if remove_zip:
-            os.remove(filename)
+    with zipfile.ZipFile(filename, 'r') as f:
+      f.extractall()
 
-        shutil.move(cfg['dataset_dir'], root)
+    if remove_zip:
+      os.remove(filename)
+
+    shutil.move(cfg['dataset_dir'], root)

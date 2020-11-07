@@ -1,97 +1,112 @@
+import builtins
 from collections import OrderedDict
+from typing import Any, Callable, Optional
 
 import torch
 from config.global_config import cfg as gcfg
-from config.model_config import cfg
-from torch import nn
+from config.model_config import cfg as mcfg
+from torch import Tensor, nn
+from torch._C import ParameterDict
 
-from .layers import batchnorm, conv2d, leaky_relu
+from .layers import batchnorm, conv2d, leaky_relu, pixel_shuffle
 from .resblock import Resblock
+
+_int = builtins.int
 
 
 class MetaDRN(nn.Module):
-    def __init__(self, loss_fn, seed=gcfg['seed']):
-        super(MetaDRN, self).__init__()
-        # Definet the network
-        self.head = nn.Sequential()
-        self.head.add_module('conv1', nn.Conv2d(**(cfg['head']['conv1'])))
-        self.head.add_module('bn1', nn.BatchNorm2d(**cfg['head']['bn1']))
-        self.head.add_module('lr1', nn.LeakyReLU())
-        self.head.add_module('conv2', nn.Conv2d(**(cfg['head']['conv2'])))
-        self.head.add_module('bn2', nn.BatchNorm2d(**(cfg['head']['bn2'])))
-        self.head.add_module('lr2', nn.LeakyReLU())
 
-        self.resblocks = nn.Sequential()
-        self.resblocks.add_module('resblock1', Resblock(1))
-        self.resblocks.add_module('resblock2', Resblock(2))
-        self.resblocks.add_module('resblock3', Resblock(3))
+  def __init__(self,
+               loss_fn: Callable[[Tensor, Tensor], Tensor],
+               seed: _int = gcfg["seed"]):
+    super(MetaDRN, self).__init__()
+    # Definet the network
+    self.head = nn.Sequential()
+    self.head.add_module("conv1", nn.Conv2d(**mcfg["head"]["conv1"]))
+    self.head.add_module("bn1", nn.BatchNorm2d(**mcfg["head"]["bn1"]))
+    self.head.add_module("lr1", nn.LeakyReLU())
+    self.head.add_module("conv2", nn.Conv2d(**mcfg["head"]["conv2"]))
+    self.head.add_module("bn2", nn.BatchNorm2d(**mcfg["head"]["bn2"]))
+    self.head.add_module("lr2", nn.LeakyReLU())
 
-        self.degrid = nn.Sequential()
-        self.degrid.add_module('conv1', nn.Conv2d(**cfg['degrid']['conv1']))
-        self.degrid.add_module('conv2', nn.Conv2d(**cfg['degrid']['conv2']))
+    self.resblocks = nn.Sequential()
+    self.resblocks.add_module("resblock1", Resblock(1))
+    self.resblocks.add_module("resblock2", Resblock(2))
+    self.resblocks.add_module("resblock3", Resblock(3))
 
-        self.upsample = nn.Sequential(OrderedDict([
-            ('conv1', nn.Conv2d(**cfg['upsample']['conv'])),
-            ('pixel_shuffle', nn.PixelShuffle(
-                **cfg['upsample']['pixel_shuffle']))
-        ]))
+    self.degrid = nn.Sequential()
+    self.degrid.add_module("conv1", nn.Conv2d(**mcfg["degrid"]["conv1"]))
+    self.degrid.add_module("conv2", nn.Conv2d(**mcfg["degrid"]["conv2"]))
 
-        # define loss fn
-        self.loss_fn = loss_fn
+    self.upsample = nn.Sequential(
+        OrderedDict([("conv1", nn.Conv2d(**mcfg["upsample"]["conv"])),
+                     ("pixel_shuffle",
+                      nn.PixelShuffle(**mcfg["upsample"]["pixel_shuffle"]))]))
 
-        # init weights
-        self._init_weights(seed)
+    # define loss fn
+    self.loss_fn = loss_fn
 
-    def forward(self, x, weights=None):
-        if weights is None:
-            x = self.head(x)
-            x = self.resblocks(x)
-            x = self.degrid(x)
-            x = self.upsample(x)
-        else:
-            # head
+    # init weights
+    self._init_weights(seed)
 
-            x = conv2d(x, weights['head.conv1.weight'],
-                       weights['head.conv1.bias'], self.device)
-            x = batchnorm(x, weights['head.bn1.weight'],
-                          weights['head.bn1.bias'], self.device)
-            x = leaky_relu(x)
-            x = conv2d(x, weights['head.conv2.weight'],
-                       weights['head.conv2.bias'], self.device)
-            x = batchnorm(x, weights['head.bn2.weight'],
-                          weights['head.bn2.bias'], self.device)
-            x = leaky_relu(x)
+  def forward(self, x: Tensor, weights=Optional[ParameterDict]) -> Tensor:
+    if weights is None:
+      x = self.head(x)
+      x = self.resblocks(x)
+      x = self.degrid(x)
+      x = self.upsample(x)
+    else:
+      # head
 
-            # resblocks
-            x = self.resblocks(x, weights=weights)
+      x = conv2d(x, weights["head.conv1.weight"], weights["head.conv1.bias"],
+                 str(self.device))
+      x = batchnorm(x, weights["head.bn1.weight"], weights["head.bn1.bias"],
+                    str(self.device))
+      x = leaky_relu(x)
+      x = conv2d(x, weights["head.conv2.weight"], weights["head.conv2.bias"],
+                 str(self.device))
+      x = batchnorm(x, weights["head.bn2.weight"], weights["head.bn2.bias"],
+                    str(self.device))
+      x = leaky_relu(x)
 
-            # upsample
+      # resblocks
+      x = self.resblocks(x, weights=weights)
 
-            x = conv2d(x, weights['degrid.conv1.weight'],
-                       weights['degrid.conv1.bias'], self.device)
-            x = conv2d(x, weights['degrid.conv2.weight'],
-                       weights['degrid.conv2.bias'], self.device)
+      # upsample
 
-            x
-        return x
+      x = conv2d(x, weights["degrid.conv1.weight"],
+                 weights["degrid.conv1.bias"], str(self.device))
+      x = conv2d(x, weights["degrid.conv2.weight"],
+                 weights["degrid.conv2.bias"], str(self.device))
 
-    def _init_weights(self, seed):
-        "Set weights to Gaussian, biases to zero"
-        torch.manual_seed(seed)
-        print('init weights')
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight.data, a=0.01),
-                if m.bias is not None:
-                    m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+      x = conv2d(x, weights["upsample.conv1.weight"],
+                 weights["upsample.conv1.bias"], str(self.device))
+      x = pixel_shuffle(x, mcfg["upscale_factor"])
+
+    return x
+
+  def _init_weights(self, seed: _int) -> None:
+    "Set weights to Gaussian, biases to zero"
+    torch.manual_seed(seed)
+    print("init weights")
+    for m in self.modules():
+      if isinstance(m, nn.Conv2d):
+        nn.init.kaiming_normal_(m.weight.data, a=0.01),
+        if m.bias is not None:
+          m.bias.data.zero_()
+      elif isinstance(m, nn.BatchNorm2d):
+        m.weight.data.fill_(1)
+        m.bias.data.zero_()
+
+  def copy_weights(self, net: 'MetaDRN') -> None:
+    """ Set this module"s weights to be the same as those of "net" """
+    if type(self) == type(net):
+      self.load_state_dict(net.state_dict())
 
 
-def main():
-    return
+def main() -> None:
+  return
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+  main()

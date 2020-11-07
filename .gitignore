@@ -146,5 +146,6 @@ lightning_logs
 saved_models
 interpreter.py
 scrap_code.py
+.pylintrc
 *.jpg
 *.png

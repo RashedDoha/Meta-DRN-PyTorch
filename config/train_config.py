@@ -1,12 +1,10 @@
-{
+cfg = {
     'ngpus': 1,
     'metrics': ['iou', 'learner_loss', 'meta_loss'],
     'n_epochs': 5,
     'maml': {
         'learner_lr': 1e-3,
         'meta_lr': 1e-3,
-
-
         'halve_lr_every': 8,
         'lr_reduction_factor': 0.5,
         'metric_to_watch': 'mIoU'
