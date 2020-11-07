@@ -2,10 +2,12 @@
 to the training script."""
 import argparse
 from argparse import Namespace
-from typings.common_types import _int, Dict, Union
+
 from pytorch_lightning import Trainer
+
 from config.data_config import cfg as dcfg
 from config.train_config import cfg as tcfg
+from typings.common_types import Dict, Union, _int
 
 
 def get_args() -> Namespace:

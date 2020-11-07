@@ -1,10 +1,11 @@
 from collections import OrderedDict
-from typings.common_types import _int, Callable, Optional, Tensor
+
 import torch
 from config.global_config import cfg as gcfg
 from config.model_config import cfg as mcfg
 from torch import nn
 from torch._C import ParameterDict
+from typings.common_types import Callable, Optional, Tensor, _int
 
 from .layers import batchnorm, conv2d, leaky_relu, pixel_shuffle
 from .resblock import Resblock

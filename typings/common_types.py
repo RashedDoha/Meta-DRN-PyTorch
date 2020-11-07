@@ -1,10 +1,11 @@
 """A list of common types used in multiple places.
 """
 import builtins
+from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Type, Union
+
 from torch import Tensor
-from typing import Callable, Dict, Tuple, Union, Optional, Type, Any, Mapping
-from torch.types import Device
 from torch.nn import Module
+from torch.types import Device
 
 _int = builtins.int
 _float = builtins.float

@@ -1,8 +1,8 @@
 """ Residual components of the network"""
-from typings.common_types import Tensor, Dict
 from config.model_config import cfg
 from torch import nn
 from torch.nn.parameter import Parameter
+from typings.common_types import Dict, Tensor
 
 from .layers import conv2d
 

@@ -2,14 +2,14 @@
 
 import time
 
-from typings.common_types import _int, _float, Union, Module, Callable
 import albumentations as A
 import requests
 from albumentations.pytorch.transforms import ToTensor
-from tqdm import tqdm
 from requests.models import Response
+from tqdm import tqdm
 
 from config.utils_config import cfg
+from typings.common_types import Callable, Module, Union, _float, _int
 
 
 def download_file_from_google_drive(file_id: str, destination: str) -> None:

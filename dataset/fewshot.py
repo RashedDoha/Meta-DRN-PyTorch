@@ -1,7 +1,7 @@
 """Implementation of the torch dataset"""
 import os
 import random
-from typings.common_types import _int, Optional, Type, Any
+
 import albumentations as A
 import numpy as np
 import torch
@@ -9,8 +9,9 @@ from albumentations.pytorch.transforms import ToTensor
 from config.data_config import cfg
 from PIL import Image
 from torch.utils.data import Dataset
-from utils import download_file_from_google_drive
 from torchvision import transforms
+from typings.common_types import Any, Optional, Type, _int
+from utils import download_file_from_google_drive
 
 
 class FSSDataset(Dataset):

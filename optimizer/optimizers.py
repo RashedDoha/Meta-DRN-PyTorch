@@ -1,8 +1,9 @@
-from torch import optim
-from config.train_config import cfg
-from typings.common_types import Module, Dict, Union
 from argparse import Namespace
+
+from config.train_config import cfg
+from torch import optim
 from torch.optim import Optimizer
+from typings.common_types import Dict, Module, Union
 
 
 def get_optimizers(
