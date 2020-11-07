@@ -1,3 +1,4 @@
+"""Configs for the dataset options"""
 cfg = {
     'data_root': 'data',
     'dataset_name': 'FSS-1000',

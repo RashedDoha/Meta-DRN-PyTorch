@@ -1,3 +1,4 @@
+"""Configs for utlities and transformations"""
 from .data_config import cfg as data_cfg
 
 cfg = {

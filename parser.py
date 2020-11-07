@@ -1,4 +1,4 @@
-""" Argument parser for obtaining command line parameters passed 
+""" Argument parser for obtaining command line parameters passed
 to the training script."""
 import argparse
 from argparse import Namespace
@@ -7,15 +7,14 @@ from pytorch_lightning import Trainer
 
 from config.data_config import cfg as dcfg
 from config.train_config import cfg as tcfg
-from typings.common_types import Dict, Union, _int
 
 
 def get_args() -> Namespace:
-  """Returns a namespace containing the command line arguments passed to the 
+  """Returns a namespace containing the command line arguments passed to the
   command line.
 
   Returns:
-      Dict[str, Union[str, _int]]: A python dictionary where the keys 
+      Dict[str, Union[str, _int]]: A python dictionary where the keys
       are the argument names and the values are either default or user provided.
   """
   parser = argparse.ArgumentParser(

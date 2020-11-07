@@ -15,7 +15,7 @@ class Resblock(nn.Module):
   """
 
   def __init__(self, block_id: int):
-    super(Resblock, self).__init__()
+    super().__init__()
     self.block_id = 'resblock%d' % block_id
 
     # print(**(cfg['resblocks'][self.block_id]['conv1']))

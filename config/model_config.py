@@ -1,3 +1,4 @@
+"""Configs for the model hyperparameters"""
 cfg = {
     'head': {
         'conv1': {
@@ -59,7 +60,6 @@ cfg = {
                 'padding': 2,
                 'dilation': 2
             }
-
         },
         'resblock3': {
             'conv1': {

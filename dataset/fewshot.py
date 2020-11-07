@@ -1,6 +1,8 @@
 """Implementation of the torch dataset"""
 import os
 import random
+import shutil
+import zipfile
 
 import albumentations as A
 import numpy as np
@@ -9,14 +11,13 @@ from albumentations.pytorch.transforms import ToTensor
 from config.data_config import cfg
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision import transforms
-from typings.common_types import Any, Optional, Type, _int
+from typings.common_types import Any, Optional, _int
 from utils import download_file_from_google_drive
 
 
 class FSSDataset(Dataset):
   """A subclass of torch.utils.data.Dataset that reads images
-   from the  dataset folder into the appropriate support and query 
+   from the  dataset folder into the appropriate support and query
    sets defined in data_config.
   """
   folder = cfg['dataset_dir']
@@ -29,7 +30,7 @@ class FSSDataset(Dataset):
                meta_split: Optional[str] = 'train',
                transform: Optional[Any] = None,
                download: Optional[bool] = True):
-    super(FSSDataset, self).__init__()
+    super().__init__()
     assert meta_split in ['train', 'val',
                           'test'], "meta-split must be either 'train',\
                  'val' or 'test'"
@@ -116,8 +117,6 @@ class FSSDataset(Dataset):
 
   def download(self, root, remove_zip=True):
     filename = cfg['dataset_dir'] + '.zip'
-    import shutil
-    import zipfile
 
     if os.path.exists(root):
       return

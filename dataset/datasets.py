@@ -12,7 +12,7 @@ from .fewshot import FSSDataset
 
 def get_dataset(algo: str, meta_split='train'):
   """Retrieves dataset corresponding to parameters
-   defined in config module for the meta learning algorithm used. 
+   defined in config module for the meta learning algorithm used.
 
   Args:
       algo (str): Meta learning algorithm from [maml, fomaml,\

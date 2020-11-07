@@ -1,8 +1,8 @@
+"""Provides functional layers for the model"""
 import numpy as np
 import torch
 import torch.nn.functional as F
 from common_types import Tensor, Union, _float, _int
-from torch import Tensor
 from torch.types import Device, _size
 
 _opt_arg = Union[_int, _size]

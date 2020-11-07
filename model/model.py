@@ -1,3 +1,4 @@
+"""Implements the model described in arxiv.2008.00247"""
 from collections import OrderedDict
 
 import torch
@@ -12,11 +13,13 @@ from .resblock import Resblock
 
 
 class MetaDRN(nn.Module):
+  """MetaDRN architectured described in arxiv.2008.00247
+  """
 
   def __init__(self,
                loss_fn: Callable[[Tensor, Tensor], Tensor],
                seed: _int = gcfg["seed"]):
-    super(MetaDRN, self).__init__()
+    super().__init__()
     # Definet the network
     self.head = nn.Sequential()
     self.head.add_module("conv1", nn.Conv2d(**mcfg["head"]["conv1"]))
@@ -88,7 +91,7 @@ class MetaDRN(nn.Module):
     print("init weights")
     for m in self.modules():
       if isinstance(m, nn.Conv2d):
-        nn.init.kaiming_normal_(m.weight.data, a=0.01),
+        _ = nn.init.kaiming_normal_(m.weight.data, a=0.01)
         if m.bias is not None:
           m.bias.data.zero_()
       elif isinstance(m, nn.BatchNorm2d):
@@ -97,7 +100,7 @@ class MetaDRN(nn.Module):
 
   def copy_weights(self, net: "MetaDRN") -> None:
     """ Set this module"s weights to be the same as those of "net" """
-    if type(self) == type(net):
+    if isinstance(net, type(self)):
       self.load_state_dict(net.state_dict())
 
 

@@ -1,3 +1,4 @@
+"""Configs for training"""
 cfg = {
     'ngpus': 1,
     'metrics': ['iou', 'learner_loss', 'meta_loss'],

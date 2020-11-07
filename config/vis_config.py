@@ -1,3 +1,4 @@
+"""Configs for visualization"""
 cfg = {
     'tensorboard': {
         'logdir': 'logs',

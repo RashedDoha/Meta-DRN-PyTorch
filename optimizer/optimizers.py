@@ -1,3 +1,4 @@
+"""Utility functions for retrieving optimizers"""
 from argparse import Namespace
 
 from config.train_config import cfg
