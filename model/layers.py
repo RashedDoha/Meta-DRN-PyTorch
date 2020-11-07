@@ -1,17 +1,12 @@
-from types import BuiltinMethodType
-from typing import Union
-import builtins
-
 import numpy as np
 import torch
 from torch import Tensor
-from torch.types import Device, _int, _size
+from common_types import _int, _float, Union, Tensor
+from torch.types import Device, _size
 import torch.nn.functional as F
 
 _opt_arg = Union[_int, _size]
 _opt_tensor = Union[Tensor, None]
-
-_int, _float = builtins.int, builtins.float
 
 
 def conv2d(x: Tensor,

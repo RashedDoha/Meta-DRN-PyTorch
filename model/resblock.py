@@ -1,8 +1,5 @@
 """ Residual components of the network"""
-
-import typing as _typing
-
-import torch as _torch
+from typings.common_types import Tensor, Dict
 from config.model_config import cfg
 from torch import nn
 from torch.nn.parameter import Parameter
@@ -28,9 +25,7 @@ class Resblock(nn.Module):
                     nn.Conv2d(**(cfg['resblocks'][self.block_id]['conv2'])))
     self.add_module('reducer', nn.Conv2d(**cfg['reducer'][self.block_id]))
 
-  def forward(self,
-              x: _torch.Tensor,
-              weights: _typing.Dict[str, Parameter] = None):
+  def forward(self, x: Tensor, weights: Dict[str, Parameter] = None):
     if weights is None:
       x_init = x
       for i, block in enumerate(self.children()):
@@ -44,20 +39,20 @@ class Resblock(nn.Module):
       # conv1
       x = conv2d(x,
                  weights[''.join(['resblocks', self.block_id, 'conv1.weight'])],
-                 weights[''.join(['resblocks', self.block_id,
-                                  'conv1.bias'])], self.device)
+                 weights[''.join(['resblocks', self.block_id, 'conv1.bias'])],
+                 str(self.device))
 
       # conv2
       x = conv2d(x,
                  weights[''.join(['resblocks', self.block_id, 'conv2.weight'])],
-                 weights[''.join(['resblocks', self.block_id,
-                                  'conv2.bias'])], self.device)
+                 weights[''.join(['resblocks', self.block_id, 'conv2.bias'])],
+                 str(self.device))
 
       # reducer
       x = conv2d(
           x, weights[''.join(['resblocks', self.block_id, 'reducer.weight'])],
-          weights[''.join(['resblocks', self.block_id,
-                           'reducer.bias'])], self.device)
+          weights[''.join(['resblocks', self.block_id, 'reducer.bias'])],
+          str(self.device))
 
       # add
       x = x_init + x

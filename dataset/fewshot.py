@@ -1,6 +1,7 @@
+"""Implementation of the torch dataset"""
 import os
 import random
-
+from typings.common_types import _int, Optional, Type, Any
 import albumentations as A
 import numpy as np
 import torch
@@ -9,19 +10,24 @@ from config.data_config import cfg
 from PIL import Image
 from torch.utils.data import Dataset
 from utils import download_file_from_google_drive
+from torchvision import transforms
 
 
 class FSSDataset(Dataset):
+  """A subclass of torch.utils.data.Dataset that reads images
+   from the  dataset folder into the appropriate support and query 
+   sets defined in data_config.
+  """
   folder = cfg['dataset_dir']
 
   def __init__(self,
-               root,
-               ways,
-               shots=1,
-               test_shots=1,
-               meta_split='train',
-               transform=None,
-               download=True):
+               root: str,
+               ways: _int,
+               shots: _int,
+               test_shots: _int,
+               meta_split: Optional[str] = 'train',
+               transform: Optional[Any] = None,
+               download: Optional[bool] = True):
     super(FSSDataset, self).__init__()
     assert meta_split in ['train', 'val',
                           'test'], "meta-split must be either 'train',\

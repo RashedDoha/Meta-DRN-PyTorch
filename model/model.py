@@ -1,17 +1,13 @@
-import builtins
 from collections import OrderedDict
-from typing import Any, Callable, Optional
-
+from typings.common_types import _int, Callable, Optional, Tensor
 import torch
 from config.global_config import cfg as gcfg
 from config.model_config import cfg as mcfg
-from torch import Tensor, nn
+from torch import nn
 from torch._C import ParameterDict
 
 from .layers import batchnorm, conv2d, leaky_relu, pixel_shuffle
 from .resblock import Resblock
-
-_int = builtins.int
 
 
 class MetaDRN(nn.Module):
@@ -98,7 +94,7 @@ class MetaDRN(nn.Module):
         m.weight.data.fill_(1)
         m.bias.data.zero_()
 
-  def copy_weights(self, net: 'MetaDRN') -> None:
+  def copy_weights(self, net: "MetaDRN") -> None:
     """ Set this module"s weights to be the same as those of "net" """
     if type(self) == type(net):
       self.load_state_dict(net.state_dict())

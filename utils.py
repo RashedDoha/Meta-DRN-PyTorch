@@ -2,15 +2,17 @@
 
 import time
 
+from typings.common_types import _int, _float, Union, Module, Callable
 import albumentations as A
 import requests
 from albumentations.pytorch.transforms import ToTensor
 from tqdm import tqdm
+from requests.models import Response
 
 from config.utils_config import cfg
 
 
-def download_file_from_google_drive(file_id, destination):
+def download_file_from_google_drive(file_id: str, destination: str) -> None:
   print('Downloading ', destination.rpartition('/')[-1])
   url = 'https://docs.google.com/uc?export=download'
 
@@ -26,7 +28,7 @@ def download_file_from_google_drive(file_id, destination):
   save_response_content(response, destination)
 
 
-def get_confirm_token(response):
+def get_confirm_token(response: Response) -> Union[str, None]:
   for key, value in response.cookies.items():
     if key.startswith('download_warning'):
       return value
@@ -34,7 +36,7 @@ def get_confirm_token(response):
   return None
 
 
-def save_response_content(response, destination):
+def save_response_content(response: Response, destination: str) -> None:
   chunk_size = 32768
 
   with open(destination, 'wb') as f:
@@ -48,11 +50,11 @@ def save_response_content(response, destination):
     pbar.close()
 
 
-def count_parameters(model):
+def count_parameters(model: Module) -> _int:
   return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-def get_transforms():
+def get_transforms() -> A.Compose:
   transforms = cfg['transforms']
 
   ts = []
@@ -71,7 +73,7 @@ def get_transforms():
   return transform
 
 
-def time_func(func):
+def time_func(func: Callable[...]) -> _float:
   t1 = time.time()
   func()
   t2 = time.time()
@@ -79,8 +81,8 @@ def time_func(func):
   return t2 - t1
 
 
-def main():
-  pass
+def main() -> None:
+  return
 
 
 if __name__ == '__main__':

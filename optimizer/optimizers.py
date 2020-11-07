@@ -1,8 +1,13 @@
 from torch import optim
 from config.train_config import cfg
+from typings.common_types import Module, Dict, Union
+from argparse import Namespace
+from torch.optim import Optimizer
 
 
-def get_optimizers(module, args):
+def get_optimizers(
+    module: Module, args: Namespace
+) -> Union[Dict[str, Union[Optimizer, object, str]], [Optimizer, object]]:
   meta_lr = cfg[args.algo]['meta_lr']
   n_epochs = cfg['n_epochs']
   optimizer = optim.AdamW(module.parameters(), meta_lr)

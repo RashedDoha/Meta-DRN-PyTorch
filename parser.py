@@ -1,10 +1,21 @@
+""" Argument parser for obtaining command line parameters passed 
+to the training script."""
 import argparse
+from argparse import Namespace
+from typings.common_types import _int, Dict, Union
 from pytorch_lightning import Trainer
 from config.data_config import cfg as dcfg
 from config.train_config import cfg as tcfg
 
 
-def get_args():
+def get_args() -> Namespace:
+  """Returns a namespace containing the command line arguments passed to the 
+  command line.
+
+  Returns:
+      Dict[str, Union[str, _int]]: A python dictionary where the keys 
+      are the argument names and the values are either default or user provided.
+  """
   parser = argparse.ArgumentParser(
       'Meta-DRN: Meta-Learning for 1-Shot Image Segmentation')
   parser = Trainer.add_argparse_args(parser)
